@@ -6,3 +6,4 @@ Criação de um site de montagens de setups de computadores, voltado para o púb
 Integrantes:
 Eduardo Moreira Santos Barreto
 Ícaro Rodrigues Pacheco
+João Vitor Abreu
