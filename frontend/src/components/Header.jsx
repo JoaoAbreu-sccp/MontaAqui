@@ -1,10 +1,11 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
 
+// somenteLogado: o link só aparece para quem entrou na conta.
 const links = [
   { to: '/questionario', label: 'Questionário' },
   { to: '/setups', label: 'Setups' },
-  { to: '/perfil', label: 'Perfil' },
+  { to: '/perfil', label: 'Perfil', somenteLogado: true },
 ]
 
 // O NavLink informa se a rota está ativa, e usamos isso para destacar a página atual.
@@ -51,7 +52,9 @@ export default function Header() {
           aria-label="Navegação principal"
           className="order-last -mx-3 flex w-full md:order-none md:mx-0 md:w-auto"
         >
-          {links.map(({ to, label }) => (
+          {links
+            .filter((link) => estaLogado || !link.somenteLogado)
+            .map(({ to, label }) => (
             <NavLink key={to} to={to} className={classesDoLink}>
               {label}
             </NavLink>
