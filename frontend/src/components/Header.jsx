@@ -1,9 +1,10 @@
-import { Link, NavLink } from 'react-router-dom'
-import { IconeUsuario } from './Icones'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import useAuth from '../hooks/useAuth'
+import { IconeUsuario, IconeVoltar } from './Icones'
 import LogoMarca from './LogoMarca'
 
 // O site funciona sem conta: a conta só serve para salvar setups.
-// Por isso a navegação é curta e "Entrar" fica separado, no canto direito.
+// Por isso a navegação é curta e a parte da conta fica separada, no canto direito.
 const links = [
   { to: '/', label: 'Início', fim: true },
   { to: '/questionario', label: 'Montar meu PC' },
@@ -19,9 +20,27 @@ function classesDoLink({ isActive }) {
     : `${base} text-tinta-suave hover:bg-menta hover:text-tinta`
 }
 
+const classesBotaoConta =
+  'inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] px-4 text-[0.92rem] font-semibold transition-colors'
+
+function iniciais(nome = '') {
+  const partes = nome.trim().split(/\s+/)
+  const primeira = partes[0]?.[0] ?? ''
+  const ultima = partes.length > 1 ? partes.at(-1)[0] : ''
+  return (primeira + ultima).toUpperCase()
+}
+
 export default function Header() {
+  const { usuario, estaLogado, sair } = useAuth()
+  const navigate = useNavigate()
+  const primeiroNome = usuario?.nome?.split(' ')[0]
+
+  function aoSair() {
+    sair()
+    navigate('/')
+  }
+
   return (
-    // sticky + fundo translúcido com desfoque: o menu acompanha a rolagem sem esconder o conteúdo.
     <header className="sticky top-0 z-50 border-b border-linha bg-white/85 backdrop-blur-md">
       <div className="mx-auto flex h-18 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2.5 rounded-lg">
@@ -40,19 +59,51 @@ export default function Header() {
           ))}
         </nav>
 
-        <NavLink
-          to="/login"
-          className={({ isActive }) =>
-            `inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] px-4 text-[0.92rem] font-semibold transition-colors ${
-              isActive
-                ? 'border-esmeralda bg-menta'
-                : 'border-menta-borda bg-white hover:border-esmeralda hover:bg-menta'
-            }`
-          }
-        >
-          <IconeUsuario tamanho={18} />
-          Entrar
-        </NavLink>
+        {estaLogado ? (
+          <div className="flex items-center gap-2">
+            {/* Círculo com as iniciais leva ao perfil. O nome some no celular para caber. */}
+            <NavLink
+              to="/perfil"
+              className={({ isActive }) =>
+                `inline-flex min-h-11 items-center gap-2 rounded-full pr-1 pl-1 font-semibold sm:pr-3 ${
+                  isActive ? 'bg-menta-forte' : 'hover:bg-menta'
+                }`
+              }
+            >
+              <span
+                aria-hidden="true"
+                className="flex size-9 items-center justify-center rounded-full bg-menta-forte text-sm font-bold text-esmeralda-escuro"
+              >
+                {iniciais(usuario?.nome)}
+              </span>
+              <span className="sr-only sm:not-sr-only sm:max-w-32 sm:truncate sm:text-[0.92rem]">
+                Olá, {primeiroNome}
+              </span>
+            </NavLink>
+            <button
+              type="button"
+              onClick={aoSair}
+              className={`${classesBotaoConta} border-menta-borda bg-white hover:border-esmeralda hover:bg-menta`}
+            >
+              <IconeVoltar tamanho={18} />
+              Sair
+            </button>
+          </div>
+        ) : (
+          <NavLink
+            to="/login"
+            className={({ isActive }) =>
+              `${classesBotaoConta} ${
+                isActive
+                  ? 'border-esmeralda bg-menta'
+                  : 'border-menta-borda bg-white hover:border-esmeralda hover:bg-menta'
+              }`
+            }
+          >
+            <IconeUsuario tamanho={18} />
+            Entrar
+          </NavLink>
+        )}
       </div>
     </header>
   )

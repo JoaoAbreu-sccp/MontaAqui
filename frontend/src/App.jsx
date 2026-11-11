@@ -1,10 +1,12 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import AuthProvider from './contexts/AuthProvider'
 import Layout from './layouts/Layout'
 import Cadastro from './pages/Cadastro'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Perfil from './pages/Perfil'
 import Questionario from './pages/Questionario'
+import RecuperarSenha from './pages/RecuperarSenha'
 import Resultado from './pages/Resultado'
 import Setups from './pages/Setups'
 
@@ -16,6 +18,7 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'login', element: <Login /> },
       { path: 'cadastro', element: <Cadastro /> },
+      { path: 'recuperar-senha', element: <RecuperarSenha /> },
       { path: 'resultado', element: <Resultado /> },
       { path: 'setups', element: <Setups /> },
       { path: 'perfil', element: <Perfil /> },
@@ -27,5 +30,10 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
-  return <RouterProvider router={router} />
+  // O AuthProvider fica por fora das rotas para a sessão valer em todas as páginas.
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  )
 }
