@@ -23,7 +23,7 @@ const RESPOSTAS_INICIAIS = {
   programas: [],
   orcamento: ORCAMENTO_INICIAL,
   preferencia_cpu: 'Sem preferência',
-  prioridade_desempenho: 'Equilíbrio',
+  prioridade_desempenho: 'Custo-benefício',
 }
 
 // Cada etapa tem a pergunta (titulo), uma explicação curta (subtitulo), o componente
@@ -71,7 +71,7 @@ const ETAPAS = {
   },
   prioridade: {
     titulo: 'O que pesa mais na sua escolha?',
-    subtitulo: 'Vamos ajustar as montagens de acordo com a sua prioridade.',
+    subtitulo: 'Você recebe até 3 opções de qualquer jeito. A prioridade muda as peças escolhidas em cada uma.',
     Componente: EtapaPrioridade,
     validar: () => '',
   },

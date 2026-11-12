@@ -68,10 +68,12 @@ export const FABRICANTES_CPU = [
   { valor: 'Intel', titulo: 'Intel', descricao: 'Muito usado em trabalho e produtividade.' },
 ]
 
+// "Custo-benefício", e não "Equilíbrio": Equilíbrio já é o nome de um dos três
+// níveis de setup, e a pessoa poderia achar que só receberia esse nível.
 export const PRIORIDADES = [
   {
-    valor: 'Equilíbrio',
-    titulo: 'Equilíbrio',
+    valor: 'Custo-benefício',
+    titulo: 'Custo-benefício',
     descricao: 'Bom desempenho por um preço justo.',
     recomendado: true,
   },
