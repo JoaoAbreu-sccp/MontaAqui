@@ -1,14 +1,16 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
+import iniciais from '../utils/iniciais'
 import { IconeUsuario, IconeVoltar } from './Icones'
 import LogoMarca from './LogoMarca'
 
 // O site funciona sem conta: a conta só serve para salvar setups.
 // Por isso a navegação é curta e a parte da conta fica separada, no canto direito.
+// somenteLogado: o link só aparece para quem entrou na conta.
 const links = [
   { to: '/', label: 'Início', fim: true },
   { to: '/questionario', label: 'Montar meu PC' },
-  { to: '/setups', label: 'Meus setups' },
+  { to: '/setups', label: 'Meus setups', somenteLogado: true },
 ]
 
 // Links em formato de pílula; o da página atual ganha fundo verde-claro.
@@ -22,13 +24,6 @@ function classesDoLink({ isActive }) {
 
 const classesBotaoConta =
   'inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] px-4 text-[0.92rem] font-semibold transition-colors'
-
-function iniciais(nome = '') {
-  const partes = nome.trim().split(/\s+/)
-  const primeira = partes[0]?.[0] ?? ''
-  const ultima = partes.length > 1 ? partes.at(-1)[0] : ''
-  return (primeira + ultima).toUpperCase()
-}
 
 export default function Header() {
   const { usuario, estaLogado, sair } = useAuth()
@@ -52,11 +47,13 @@ export default function Header() {
 
         {/* No celular os links somem: o botão principal da Home já leva ao questionário. */}
         <nav aria-label="Navegação principal" className="hidden gap-1 md:flex">
-          {links.map(({ to, label, fim }) => (
-            <NavLink key={to} to={to} end={fim} className={classesDoLink}>
-              {label}
-            </NavLink>
-          ))}
+          {links
+            .filter((link) => estaLogado || !link.somenteLogado)
+            .map(({ to, label, fim }) => (
+              <NavLink key={to} to={to} end={fim} className={classesDoLink}>
+                {label}
+              </NavLink>
+            ))}
         </nav>
 
         {estaLogado ? (

@@ -1,34 +1,12 @@
-import { Link } from 'react-router-dom'
+import ConviteLogin from '../components/ConviteLogin'
 import useAuth from '../hooks/useAuth'
-
-// Iniciais do nome para a foto padrão: "Maria Souza Lima" vira "ML".
-function iniciais(nome) {
-  const partes = nome.trim().split(/\s+/)
-  const primeira = partes[0]?.[0] ?? ''
-  const ultima = partes.length > 1 ? partes.at(-1)[0] : ''
-  return (primeira + ultima).toUpperCase()
-}
+import iniciais from '../utils/iniciais'
 
 export default function Perfil() {
   const { usuario, estaLogado } = useAuth()
 
-  // O link Perfil só aparece para quem está logado, mas alguém pode abrir /perfil
-  // pelo endereço. Nesse caso, mostramos um convite para entrar.
-  // O state faz o Login voltar para cá depois de entrar.
   if (!estaLogado) {
-    return (
-      <div className="mx-auto max-w-md text-center">
-        <h1>Perfil</h1>
-        <p className="mt-2 font-lora text-lg leading-relaxed">Entre na sua conta para ver seu perfil.</p>
-        <Link
-          to="/login"
-          state={{ voltarPara: '/perfil' }}
-          className="mt-6 inline-flex min-h-12 items-center rounded-md bg-tinta px-6 font-semibold text-white hover:bg-esmeralda-escuro"
-        >
-          Entrar
-        </Link>
-      </div>
-    )
+    return <ConviteLogin titulo="Perfil" explicacao="Entre na sua conta para ver seu perfil." />
   }
 
   return (
