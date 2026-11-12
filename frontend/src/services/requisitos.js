@@ -5,30 +5,22 @@
 //   GET /api/programas/  -> [{ id, nome, categoria }]
 //
 // Os dados saem das tabelas jogo e programa, preenchidas pelo comando
-// carregar_requisitos (branch banco-de-dados). Se o backend usar outros
-// caminhos ou campos, basta ajustar este arquivo.
+// carregar_requisitos. Se o backend usar outros caminhos ou campos, basta
+// ajustar este arquivo. O envio e o tratamento de erros ficam em cliente.js.
 
-const MENSAGEM_SEM_CONEXAO =
+import { chamarApi } from './cliente'
+
+const MENSAGEM_LISTA_INDISPONIVEL =
   'Não foi possível carregar a lista. Confira se o servidor está rodando e tente de novo.'
 
-async function buscar(caminho) {
-  let resposta
-  try {
-    resposta = await fetch(`/api${caminho}`)
-  } catch {
-    // fetch só falha sozinho quando não há conexão com o servidor.
-    throw new Error(MENSAGEM_SEM_CONEXAO)
-  }
-
-  // O proxy do Vite responde 5xx quando o Django não está rodando,
-  // e o Django responde 404 enquanto o endpoint não existir.
-  if (!resposta.ok) throw new Error(MENSAGEM_SEM_CONEXAO)
-
+async function buscarLista(caminho) {
   let corpo
   try {
-    corpo = await resposta.json()
+    corpo = await chamarApi(caminho)
   } catch {
-    throw new Error(MENSAGEM_SEM_CONEXAO)
+    // Qualquer falha (sem servidor ou endpoint inexistente) vira a mesma mensagem,
+    // que fica na própria etapa do questionário com o botão "Tentar de novo".
+    throw new Error(MENSAGEM_LISTA_INDISPONIVEL)
   }
 
   // Se o Django REST Framework paginar a resposta, a lista vem dentro de "results".
@@ -36,9 +28,9 @@ async function buscar(caminho) {
 }
 
 export function buscarJogos() {
-  return buscar('/jogos/')
+  return buscarLista('/jogos/')
 }
 
 export function buscarProgramas() {
-  return buscar('/programas/')
+  return buscarLista('/programas/')
 }
