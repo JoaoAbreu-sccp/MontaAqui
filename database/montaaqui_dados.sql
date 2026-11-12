@@ -1,7 +1,7 @@
 -- =====================================================================
 -- MontaAqui: dados iniciais do catálogo (MySQL 8)
 -- =====================================================================
--- Gerado em 05/09/2026 com os mesmos dados dos comandos do Django
+-- Gerado em 12/11/2026 com os mesmos dados dos comandos do Django
 -- "carregar_pecas" e "carregar_requisitos".
 --
 -- Rode depois de montaaqui_estrutura.sql, em um banco sem peças cadastradas.
@@ -56,16 +56,16 @@ INSERT INTO `ram` (`marca`, `modelo`, `preco`, `id_ram`, `capacidade_gb`, `gerac
   ('G.Skill', 'Trident Z5 Neo RGB 64GB (2x32GB) DDR5 6000MHz', 2499.90, 9, 64, 'DDR5', 6000);
 
 -- gpu (9 linhas)
-INSERT INTO `gpu` (`marca`, `modelo`, `preco`, `id_gpu`, `vram`, `comprimento_mm`, `consumo_watts`, `conectores_necessarios`) VALUES
-  ('MSI', 'GeForce RTX 3050 Ventus 2X 6G OC', 1199.90, 1, 6, 189, 70, 'Nenhum'),
-  ('PowerColor', 'Radeon RX 6600 Fighter 8GB', 1399.90, 2, 8, 200, 132, '1x 8 pinos'),
-  ('ASRock', 'Intel Arc B580 Challenger 12GB OC', 1899.90, 3, 12, 270, 190, '1x 8 pinos'),
-  ('MSI', 'GeForce RTX 5060 Ventus 2X OC 8GB', 2299.90, 4, 8, 197, 145, '1x 8 pinos'),
-  ('Sapphire', 'Radeon RX 9060 XT Pulse 16GB', 2699.90, 5, 16, 240, 160, '1x 8 pinos'),
-  ('Gigabyte', 'GeForce RTX 5060 Ti Windforce 16GB', 3299.90, 6, 16, 241, 180, '1x 8 pinos'),
-  ('ASUS', 'GeForce RTX 5070 Prime OC 12GB', 4499.90, 7, 12, 304, 250, '1x 12V-2x6'),
-  ('Sapphire', 'Radeon RX 9070 XT Pulse 16GB', 4999.90, 8, 16, 320, 304, '2x 8 pinos'),
-  ('Gigabyte', 'GeForce RTX 5080 Windforce OC 16GB', 8499.90, 9, 16, 340, 360, '1x 12V-2x6');
+INSERT INTO `gpu` (`marca`, `modelo`, `preco`, `id_gpu`, `vram`, `comprimento_mm`, `consumo_watts`, `conectores_necessarios`, `pontuacao_desempenho`) VALUES
+  ('MSI', 'GeForce RTX 3050 Ventus 2X 6G OC', 1199.90, 1, 6, 189, 70, 'Nenhum', 18),
+  ('PowerColor', 'Radeon RX 6600 Fighter 8GB', 1399.90, 2, 8, 200, 132, '1x 8 pinos', 30),
+  ('ASRock', 'Intel Arc B580 Challenger 12GB OC', 1899.90, 3, 12, 270, 190, '1x 8 pinos', 40),
+  ('MSI', 'GeForce RTX 5060 Ventus 2X OC 8GB', 2299.90, 4, 8, 197, 145, '1x 8 pinos', 45),
+  ('Sapphire', 'Radeon RX 9060 XT Pulse 16GB', 2699.90, 5, 16, 240, 160, '1x 8 pinos', 50),
+  ('Gigabyte', 'GeForce RTX 5060 Ti Windforce 16GB', 3299.90, 6, 16, 241, 180, '1x 8 pinos', 52),
+  ('ASUS', 'GeForce RTX 5070 Prime OC 12GB', 4499.90, 7, 12, 304, 250, '1x 12V-2x6', 68),
+  ('Sapphire', 'Radeon RX 9070 XT Pulse 16GB', 4999.90, 8, 16, 320, 304, '2x 8 pinos', 82),
+  ('Gigabyte', 'GeForce RTX 5080 Windforce OC 16GB', 8499.90, 9, 16, 340, 360, '1x 12V-2x6', 100);
 
 -- fonte (9 linhas)
 INSERT INTO `fonte` (`marca`, `modelo`, `preco`, `id_fonte`, `capacidade_watts`, `formato`, `conectores_pcie`) VALUES
@@ -354,3 +354,4 @@ INSERT INTO `programa` (`nome`, `desempenho_minimo`, `desempenho_recomendado`, `
   ('OBS Studio', 9, 30, 2, 4, 4, 8, 12, 'Streaming e gravação');
 
 COMMIT;
+  

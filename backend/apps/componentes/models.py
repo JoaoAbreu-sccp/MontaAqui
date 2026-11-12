@@ -98,6 +98,11 @@ class Gpu(Componente):
     conectores_necessarios = models.CharField(
         max_length=50, help_text="Ex.: 1x 8 pinos, 1x 12V-2x6, Nenhum"
     )
+    # Adicionada para o motor comparar placas de vídeo pela força, e não só pela
+    # VRAM e pelo preço. Escala própria 0–100 (RTX 5080 = 100), como a da CPU.
+    pontuacao_desempenho = models.IntegerField(
+        help_text="Escala 0–100 (RTX 5080 = 100). Usada pelo motor de recomendação"
+    )
 
     class Meta(Componente.Meta):
         db_table = "gpu"
