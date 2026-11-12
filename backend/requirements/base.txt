@@ -1,8 +1,22 @@
-asgiref==3.12.1
+# Dependências usadas em todos os ambientes (dev e prod).
+# Versões fixas para todos da equipe instalarem exatamente o mesmo.
+
+# Framework web
 Django==5.2.17
-django-cors-headers==4.9.0
-django-environ==0.14.0
-djangorestframework==3.18.1
-mysqlclient==2.3.0
+asgiref==3.12.1
 sqlparse==0.6.0
 tzdata==2026.4
+
+# API REST e login com token JWT
+djangorestframework==3.18.1
+djangorestframework_simplejwt==5.5.1
+PyJWT==2.15.1
+
+# Permite o front (outra porta/domínio) chamar a API
+django-cors-headers==4.9.0
+
+# Lê o arquivo .env (SECRET_KEY, DATABASE_URL...)
+django-environ==0.14.0
+
+# Driver do MySQL
+mysqlclient==2.3.0
