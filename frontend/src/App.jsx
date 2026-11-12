@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Perfil from './pages/Perfil'
 import Questionario from './pages/Questionario'
 import RecuperarSenha from './pages/RecuperarSenha'
+import Resultado from './pages/Resultado'
 import Setups from './pages/Setups'
 
 const router = createBrowserRouter([
@@ -18,11 +19,14 @@ const router = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'cadastro', element: <Cadastro /> },
       { path: 'recuperar-senha', element: <RecuperarSenha /> },
-      { path: 'questionario', element: <Questionario /> },
+      { path: 'resultado', element: <Resultado /> },
       { path: 'setups', element: <Setups /> },
       { path: 'perfil', element: <Perfil /> },
     ],
   },
+  // O questionário fica fora do Layout: ocupa a tela inteira, sem Header e Footer,
+  // para a pessoa focar só nas perguntas. Ele tem seus próprios botões de voltar.
+  { path: '/questionario', element: <Questionario /> },
 ])
 
 export default function App() {

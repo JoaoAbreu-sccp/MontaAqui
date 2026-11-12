@@ -1,32 +1,33 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
+import { IconeUsuario, IconeVoltar } from './Icones'
+import LogoMarca from './LogoMarca'
 
-// somenteLogado: o link só aparece para quem entrou na conta.
+// O site funciona sem conta: a conta só serve para salvar setups.
+// Por isso a navegação é curta e a parte da conta fica separada, no canto direito.
 const links = [
-  { to: '/questionario', label: 'Questionário' },
-  { to: '/setups', label: 'Setups' },
-  { to: '/perfil', label: 'Perfil', somenteLogado: true },
+  { to: '/', label: 'Início', fim: true },
+  { to: '/questionario', label: 'Montar meu PC' },
+  { to: '/setups', label: 'Meus setups' },
 ]
 
-// O NavLink informa se a rota está ativa, e usamos isso para destacar a página atual.
+// Links em formato de pílula; o da página atual ganha fundo verde-claro.
 // A altura mínima (min-h-11) deixa os links fáceis de tocar no celular.
 function classesDoLink({ isActive }) {
-  const base = 'inline-flex min-h-11 items-center rounded-lg px-3 text-sm hover:bg-menta'
-  return isActive ? `${base} font-semibold text-esmeralda-escuro` : base
+  const base = 'inline-flex min-h-11 items-center rounded-full px-4 text-[0.92rem] font-semibold transition-colors'
+  return isActive
+    ? `${base} bg-menta-forte text-esmeralda-escuro`
+    : `${base} text-tinta-suave hover:bg-menta hover:text-tinta`
 }
 
-// Entrar e Criar conta são ações da conta, não páginas de navegação,
-// por isso viram botões e ficam separados dos outros links.
-const botaoBase =
-  'inline-flex min-h-11 items-center rounded-md border-2 border-tinta px-3 text-sm font-semibold whitespace-nowrap sm:px-4'
+const classesBotaoConta =
+  'inline-flex min-h-11 items-center gap-2 rounded-full border-[1.5px] px-4 text-[0.92rem] font-semibold transition-colors'
 
-function classesEntrar({ isActive }) {
-  return `${botaoBase} ${isActive ? 'bg-menta' : 'hover:bg-menta'}`
-}
-
-// Verde-escuro, e não o verde da marca: o botão principal de cada página continua sendo o destaque.
-function classesCriarConta({ isActive }) {
-  return `${botaoBase} bg-tinta text-white ${isActive ? 'underline underline-offset-4' : 'hover:bg-esmeralda-escuro hover:border-esmeralda-escuro'}`
+function iniciais(nome = '') {
+  const partes = nome.trim().split(/\s+/)
+  const primeira = partes[0]?.[0] ?? ''
+  const ultima = partes.length > 1 ? partes.at(-1)[0] : ''
+  return (primeira + ultima).toUpperCase()
 }
 
 export default function Header() {
@@ -40,47 +41,69 @@ export default function Header() {
   }
 
   return (
-    <header className="border-b border-menta-borda bg-white">
-      {/* No celular: logo e botões na primeira linha, links na segunda.
-          A partir de md (768px), tudo em uma linha só. A propriedade order troca a posição. */}
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
-        <Link to="/" className="mr-auto text-xl font-bold sm:text-2xl">
-          Monta<span className="text-esmeralda-escuro">Aqui</span>
+    <header className="sticky top-0 z-50 border-b border-linha bg-white/85 backdrop-blur-md">
+      <div className="mx-auto flex h-18 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Link to="/" className="flex items-center gap-2.5 rounded-lg">
+          <LogoMarca tamanho={36} />
+          <span className="text-xl font-bold tracking-tight">
+            Monta<span className="text-esmeralda-escuro">Aqui</span>
+          </span>
         </Link>
 
-        <nav
-          aria-label="Navegação principal"
-          className="order-last -mx-3 flex w-full md:order-none md:mx-0 md:w-auto"
-        >
-          {links
-            .filter((link) => estaLogado || !link.somenteLogado)
-            .map(({ to, label }) => (
-            <NavLink key={to} to={to} className={classesDoLink}>
+        {/* No celular os links somem: o botão principal da Home já leva ao questionário. */}
+        <nav aria-label="Navegação principal" className="hidden gap-1 md:flex">
+          {links.map(({ to, label, fim }) => (
+            <NavLink key={to} to={to} end={fim} className={classesDoLink}>
               {label}
             </NavLink>
           ))}
         </nav>
 
-        {/* A borda à esquerda separa visualmente a conta da navegação no desktop. */}
-        <div className="flex items-center gap-2 md:border-l md:border-menta-borda md:pl-4">
-          {estaLogado ? (
-            <>
-              <span className="max-w-32 truncate text-sm sm:max-w-48">Olá, {primeiroNome}</span>
-              <button type="button" onClick={aoSair} className={`${botaoBase} hover:bg-menta`}>
-                Sair
-              </button>
-            </>
-          ) : (
-            <>
-              <NavLink to="/login" className={classesEntrar}>
-                Entrar
-              </NavLink>
-              <NavLink to="/cadastro" className={classesCriarConta}>
-                Criar conta
-              </NavLink>
-            </>
-          )}
-        </div>
+        {estaLogado ? (
+          <div className="flex items-center gap-2">
+            {/* Círculo com as iniciais leva ao perfil. O nome some no celular para caber. */}
+            <NavLink
+              to="/perfil"
+              className={({ isActive }) =>
+                `inline-flex min-h-11 items-center gap-2 rounded-full pr-1 pl-1 font-semibold sm:pr-3 ${
+                  isActive ? 'bg-menta-forte' : 'hover:bg-menta'
+                }`
+              }
+            >
+              <span
+                aria-hidden="true"
+                className="flex size-9 items-center justify-center rounded-full bg-menta-forte text-sm font-bold text-esmeralda-escuro"
+              >
+                {iniciais(usuario?.nome)}
+              </span>
+              <span className="sr-only sm:not-sr-only sm:max-w-32 sm:truncate sm:text-[0.92rem]">
+                Olá, {primeiroNome}
+              </span>
+            </NavLink>
+            <button
+              type="button"
+              onClick={aoSair}
+              className={`${classesBotaoConta} border-menta-borda bg-white hover:border-esmeralda hover:bg-menta`}
+            >
+              <IconeVoltar tamanho={18} />
+              Sair
+            </button>
+          </div>
+        ) : (
+          <NavLink
+            to="/login"
+            className={({ isActive }) =>
+              `${classesBotaoConta} ${
+                isActive
+                  ? 'border-esmeralda bg-menta'
+                  : 'border-menta-borda bg-white hover:border-esmeralda hover:bg-menta'
+              }`
+            }
+          >
+            <IconeUsuario tamanho={18} />
+            Entrar
+          </NavLink>
+        )}
       </div>
     </header>
   )

@@ -50,7 +50,7 @@ export default function Home() {
               A sombra sólida e o movimento ao clicar lembram uma peça sendo encaixada. */}
           <Link
             to="/questionario"
-            className="w-full rounded-md bg-esmeralda px-8 py-4 text-center text-xl font-bold text-white shadow-[0_5px_0_var(--color-esmeralda-escuro)] transition-[translate,box-shadow] hover:shadow-[0_5px_0_var(--color-tinta)] active:translate-y-1 active:shadow-[0_1px_0_var(--color-tinta)] sm:w-auto"
+            className="w-full rounded-full bg-esmeralda px-8 py-4 text-center text-xl font-bold text-white shadow-[0_5px_0_var(--color-esmeralda-escuro)] transition-[translate,box-shadow] hover:shadow-[0_5px_0_var(--color-tinta)] active:translate-y-1 active:shadow-[0_1px_0_var(--color-tinta)] sm:w-auto"
           >
             Começar questionário
           </Link>
