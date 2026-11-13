@@ -16,7 +16,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Jogo, Programa, Setup
-from .motor import gerar_setups, resumir
+from apps.assistente.servico import recomendar_setups
+
+from .motor import gerar_setups
 from .serializers import (
     JogoSerializer,
     ProgramaSerializer,
@@ -63,17 +65,26 @@ class GerarSetupsView(APIView):
             fps=questionario.fps_alvo,
         )
 
+        # A IA escolhe as peças; tudo passa pela auditoria em Python, e o motor
+        # acima serve de reserva para qualquer nível que a IA não acertar.
         referencias = jogos or programas
+        escolhidos = recomendar_setups(questionario, referencias, resultado)
+
         setups = [
             {
                 "categoria": setup["categoria"],
                 "preco": float(setup["preco"]),
                 "pecas": pecas_para_json(setup["pecas"]),
-                "resumo": resumir(setup, questionario.orcamento, referencias),
+                "resumo": setup["resumo"],
+                "explicacao": setup["explicacao"],
+                "ajustes": setup["ajustes"],
+                "origem": setup["origem"],
+                # Todo setup que sai daqui passou por verificar_compatibilidade() (RF06).
+                "compatibilidade_verificada": True,
                 # Ids das peças, para o front pedir o salvamento depois.
                 "ids": {tipo: setup["pecas"][tipo].id for tipo, _, _ in TIPOS_DE_PECA},
             }
-            for setup in resultado["setups"]
+            for setup in escolhidos
         ]
         preco_minimo = resultado["preco_minimo"]
         return Response({
