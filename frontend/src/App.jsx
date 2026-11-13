@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import AuthProvider from './contexts/AuthProvider'
 import Layout from './layouts/Layout'
 import Cadastro from './pages/Cadastro'
@@ -8,7 +8,6 @@ import Perfil from './pages/Perfil'
 import Questionario from './pages/Questionario'
 import RecuperarSenha from './pages/RecuperarSenha'
 import Resultado from './pages/Resultado'
-import Setups from './pages/Setups'
 
 const router = createBrowserRouter([
   {
@@ -20,7 +19,8 @@ const router = createBrowserRouter([
       { path: 'cadastro', element: <Cadastro /> },
       { path: 'recuperar-senha', element: <RecuperarSenha /> },
       { path: 'resultado', element: <Resultado /> },
-      { path: 'setups', element: <Setups /> },
+      // Os setups salvos agora ficam no Perfil; o endereço antigo leva para lá.
+      { path: 'setups', element: <Navigate to="/perfil" replace /> },
       { path: 'perfil', element: <Perfil /> },
     ],
   },

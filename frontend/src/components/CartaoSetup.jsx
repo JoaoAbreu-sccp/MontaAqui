@@ -1,4 +1,5 @@
 import formatarReais from '../utils/formatarReais'
+import { IconeBrilho, IconeCheck } from './Icones'
 
 // Explicação curta de cada nível, para quem não sabe o que "Equilíbrio" quer dizer.
 const EXPLICACAO_DO_NIVEL = {
@@ -30,7 +31,25 @@ export default function CartaoSetup({ setup, destaque = false, acao }) {
         <p className="mt-3 text-3xl font-bold tracking-tight text-esmeralda-escuro">
           {formatarReais(setup.preco)}
         </p>
+        {/* Selo: o backend só devolve setups que passaram pelas regras de compatibilidade (RF06). */}
+        {setup.compatibilidade_verificada && (
+          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-menta-forte px-3 py-1 text-sm font-semibold text-esmeralda-escuro">
+            <IconeCheck tamanho={16} />
+            Compatibilidade verificada
+          </p>
+        )}
       </header>
+
+      {/* Explicação escrita pelo assistente de IA (só vem quando a IA escolheu as peças). */}
+      {setup.explicacao && (
+        <div className="mt-4 rounded-xl border border-menta-borda p-4">
+          <p className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-esmeralda-escuro uppercase">
+            <IconeBrilho tamanho={14} />
+            Por que este setup
+          </p>
+          <p className="mt-1.5 font-lora leading-relaxed">{setup.explicacao}</p>
+        </div>
+      )}
 
       {setup.resumo?.length > 0 && (
         <ul className="mt-4 flex flex-col gap-1.5 rounded-xl bg-menta p-4 text-sm leading-relaxed">
@@ -67,6 +86,19 @@ export default function CartaoSetup({ setup, destaque = false, acao }) {
           </li>
         ))}
       </ul>
+
+      {/* Peças que a verificação trocou na sugestão da IA. Fica fechado para não assustar
+          quem é leigo, mas está ali para quem quiser saber (e para a apresentação). */}
+      {setup.ajustes?.length > 0 && (
+        <details className="mt-2 text-sm text-tinta-suave">
+          <summary className="cursor-pointer font-semibold">Ajustes feitos na verificação</summary>
+          <ul className="mt-2 flex list-disc flex-col gap-1 pl-5">
+            {setup.ajustes.map((ajuste) => (
+              <li key={ajuste}>{ajuste}</li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {acao && <div className="mt-4">{acao}</div>}
     </article>

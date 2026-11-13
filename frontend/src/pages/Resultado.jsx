@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import CartaoSetup from '../components/CartaoSetup'
-import { IconeBrilho, IconeCheck, IconeInfo, IconeRefazer, IconeSeta, IconeUsuario } from '../components/Icones'
+import { IconeBrilho, IconeCheck, IconeInfo, IconeRefazer, IconeSeta } from '../components/Icones'
+import ModalLogin from '../components/ModalLogin'
 import useAuth from '../hooks/useAuth'
 import { salvarSetup } from '../services/setups'
 import formatarReais from '../utils/formatarReais'
@@ -137,35 +138,28 @@ function Aviso({ children }) {
   )
 }
 
-// Salvar exige conta (RF08). Visitante vê um link para entrar e volta para cá depois.
+// Salvar exige conta (RF08). Para visitante, o botão abre uma janela convidando a entrar
+// ou criar conta; depois do login, a pessoa volta para este mesmo resultado.
 function BotaoSalvar({ idDoQuestionario, setup }) {
   const { estaLogado, token, sair } = useAuth()
   const [situacao, setSituacao] = useState('parado') // parado | salvando | salvo
   const [erro, setErro] = useState('')
-
-  if (!estaLogado) {
-    return (
-      <Link
-        to="/login"
-        state={{ voltarPara: '/resultado' }}
-        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-menta-borda bg-white px-5 font-semibold hover:border-esmeralda hover:bg-menta"
-      >
-        <IconeUsuario tamanho={18} />
-        Entre para salvar
-      </Link>
-    )
-  }
+  const [modalAberto, setModalAberto] = useState(false)
 
   if (situacao === 'salvo') {
     return (
       <p role="status" className="flex min-h-11 items-center justify-center gap-2 font-semibold text-esmeralda-escuro">
         <IconeCheck tamanho={18} />
-        Salvo em <Link to="/setups" className="underline underline-offset-4">Meus setups</Link>
+        Salvo no <Link to="/perfil" className="underline underline-offset-4">seu perfil</Link>
       </p>
     )
   }
 
   async function salvar() {
+    if (!estaLogado) {
+      setModalAberto(true)
+      return
+    }
     setSituacao('salvando')
     setErro('')
     try {
@@ -194,6 +188,13 @@ function BotaoSalvar({ idDoQuestionario, setup }) {
           {erro}
         </p>
       )}
+      <ModalLogin
+        aberto={modalAberto}
+        aoFechar={() => setModalAberto(false)}
+        voltarPara="/resultado"
+        titulo="Entre para salvar este setup"
+        explicacao="Com uma conta grátis, seus setups ficam guardados no seu perfil, com os links das lojas."
+      />
     </div>
   )
 }

@@ -10,7 +10,8 @@ import LogoMarca from './LogoMarca'
 const links = [
   { to: '/', label: 'Início', fim: true },
   { to: '/questionario', label: 'Montar meu PC' },
-  { to: '/setups', label: 'Meus setups', somenteLogado: true },
+  // Os setups salvos ficam no Perfil, logo abaixo do nome.
+  { to: '/perfil', label: 'Meus setups', somenteLogado: true },
 ]
 
 // Links em formato de pílula; o da página atual ganha fundo verde-claro.
