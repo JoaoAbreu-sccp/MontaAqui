@@ -1,12 +1,11 @@
 // Chamadas de conta: cadastro, login e recuperação de senha.
 //
-// Contrato proposto (os endpoints ainda não existem no backend):
+// Rotas do backend (backend/apps/usuarios/views.py):
 //   POST /api/auth/cadastro/        { nome, email, password } -> { token, usuario }
 //   POST /api/auth/login/           { email, password }       -> { token, usuario }
-//   POST /api/auth/recuperar-senha/ { email }                 -> resposta sem conteúdo
+//   POST /api/auth/recuperar-senha/ { email }                 -> ainda não existe (RF03 é opcional)
 //
-// usuario = { id, nome, email }. Se o backend usar outros caminhos ou campos,
-// basta ajustar este arquivo. O envio e o tratamento de erros ficam em cliente.js.
+// usuario = { id, nome, email }. O token é um JWT válido por 1 dia. O envio e o tratamento de erros ficam em cliente.js.
 
 import { chamarApi } from './cliente'
 

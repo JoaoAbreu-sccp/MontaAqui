@@ -1,18 +1,38 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { IconeBrilho, IconeInfo, IconeRefazer, IconeSeta } from '../components/Icones'
+import CartaoSetup from '../components/CartaoSetup'
+import { IconeBrilho, IconeCheck, IconeInfo, IconeRefazer, IconeSeta, IconeUsuario } from '../components/Icones'
+import useAuth from '../hooks/useAuth'
+import { salvarSetup } from '../services/setups'
 import formatarReais from '../utils/formatarReais'
 
 const classesBotaoSecundario =
   'inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-full border-[1.5px] border-menta-borda bg-white px-5 font-semibold hover:border-esmeralda hover:bg-menta'
 
-// Página que vai mostrar os setups recomendados.
-// Por enquanto só exibe um aviso e o resumo das respostas, porque a API que gera
-// as recomendações ainda não existe. As respostas chegam pelo state da navegação.
+// O resultado chega pelo state da navegação, que se perde quando a pessoa sai da página
+// (por exemplo, para entrar na conta e salvar um setup). Por isso guardamos uma cópia
+// no sessionStorage: ao voltar do login, o resultado continua aqui.
+const CHAVE_RESULTADO = 'montaaqui:ultimoResultado'
+
+function lembrarResultado(state) {
+  try {
+    if (state?.gerado) {
+      sessionStorage.setItem(CHAVE_RESULTADO, JSON.stringify(state))
+      return state
+    }
+    return JSON.parse(sessionStorage.getItem(CHAVE_RESULTADO))
+  } catch {
+    return state ?? null
+  }
+}
+
+// Mostra os até 3 setups gerados pela API para as respostas do questionário.
 export default function Resultado() {
   const { state } = useLocation()
+  const [resultado] = useState(() => lembrarResultado(state))
 
   // Quem abre /resultado direto, sem responder o questionário, não tem respostas.
-  if (!state?.questionario) {
+  if (!resultado?.gerado) {
     return (
       <div className="mx-auto flex max-w-xl flex-col items-center gap-4 py-10 text-center motion-safe:animate-subir">
         <h1>Nenhum questionário respondido</h1>
@@ -29,7 +49,9 @@ export default function Resultado() {
     )
   }
 
-  const { questionario, nomesDosJogos, nomesDosProgramas } = state
+  const { questionario, nomesDosJogos, nomesDosProgramas, gerado } = resultado
+  const { setups, preco_minimo: precoMinimo } = gerado
+  const orcamentoNaoCobre = precoMinimo !== null && precoMinimo > questionario.orcamento
 
   // Cada linha do resumo: rótulo e valor. Linhas sem valor não aparecem.
   const linhas = [
@@ -54,7 +76,7 @@ export default function Resultado() {
           </p>
           <h1 className="mt-4 text-3xl leading-tight tracking-tight sm:text-4xl">Suas montagens</h1>
           <p className="mt-2 max-w-2xl font-lora text-lg leading-relaxed text-tinta-suave">
-            Até 3 opções com peças compatíveis entre si, partindo do seu orçamento.
+            Todas as peças de cada opção foram conferidas: elas se encaixam e funcionam juntas.
           </p>
         </div>
         <Link to="/questionario" className={classesBotaoSecundario}>
@@ -63,21 +85,26 @@ export default function Resultado() {
         </Link>
       </div>
 
-      <div role="status" className="flex gap-4 rounded-[18px] border border-menta-borda bg-white p-5 sm:p-6">
-        <span
-          aria-hidden="true"
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-menta-forte text-esmeralda-escuro"
-        >
-          <IconeInfo tamanho={20} />
-        </span>
-        <div>
-          <p className="font-semibold">As montagens ainda não estão disponíveis.</p>
-          <p className="mt-1 font-lora leading-relaxed text-tinta-suave">
-            A ligação com a API que monta os setups ainda está em desenvolvimento. Suas respostas
-            foram registradas abaixo.
-          </p>
+      {(orcamentoNaoCobre || setups.length === 0) && (
+        <Aviso>
+          {setups.length === 0
+            ? 'Não encontramos peças no catálogo que atendam a esse pedido. Tente outro processador ou um orçamento maior.'
+            : `Com ${formatarReais(questionario.orcamento)} ainda não dá para montar um PC completo que atenda ao que você pediu. A opção abaixo é a mais barata que encontramos.`}
+        </Aviso>
+      )}
+
+      {setups.length > 0 && (
+        <div className="grid items-start gap-5 lg:grid-cols-3">
+          {setups.map((setup) => (
+            <CartaoSetup
+              key={setup.categoria}
+              setup={setup}
+              destaque={setup.categoria === 'Equilíbrio'}
+              acao={<BotaoSalvar idDoQuestionario={gerado.questionario} setup={setup} />}
+            />
+          ))}
         </div>
-      </div>
+      )}
 
       <section aria-labelledby="titulo-respostas" className="rounded-[18px] border border-linha bg-white p-6 shadow-suave sm:p-8">
         <h2 id="titulo-respostas" className="text-xl">
@@ -92,6 +119,81 @@ export default function Resultado() {
           ))}
         </dl>
       </section>
+    </div>
+  )
+}
+
+function Aviso({ children }) {
+  return (
+    <div role="status" className="flex gap-4 rounded-[18px] border border-menta-borda bg-white p-5 sm:p-6">
+      <span
+        aria-hidden="true"
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-menta-forte text-esmeralda-escuro"
+      >
+        <IconeInfo tamanho={20} />
+      </span>
+      <p className="self-center font-lora leading-relaxed">{children}</p>
+    </div>
+  )
+}
+
+// Salvar exige conta (RF08). Visitante vê um link para entrar e volta para cá depois.
+function BotaoSalvar({ idDoQuestionario, setup }) {
+  const { estaLogado, token, sair } = useAuth()
+  const [situacao, setSituacao] = useState('parado') // parado | salvando | salvo
+  const [erro, setErro] = useState('')
+
+  if (!estaLogado) {
+    return (
+      <Link
+        to="/login"
+        state={{ voltarPara: '/resultado' }}
+        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-menta-borda bg-white px-5 font-semibold hover:border-esmeralda hover:bg-menta"
+      >
+        <IconeUsuario tamanho={18} />
+        Entre para salvar
+      </Link>
+    )
+  }
+
+  if (situacao === 'salvo') {
+    return (
+      <p role="status" className="flex min-h-11 items-center justify-center gap-2 font-semibold text-esmeralda-escuro">
+        <IconeCheck tamanho={18} />
+        Salvo em <Link to="/setups" className="underline underline-offset-4">Meus setups</Link>
+      </p>
+    )
+  }
+
+  async function salvar() {
+    setSituacao('salvando')
+    setErro('')
+    try {
+      await salvarSetup(idDoQuestionario, setup, token)
+      setSituacao('salvo')
+    } catch (falha) {
+      // 401: o login venceu (o token dura 1 dia). Sai da conta para a pessoa entrar de novo.
+      if (falha.status === 401) sair()
+      setErro(falha.status === 401 ? 'Sua sessão expirou. Entre de novo para salvar.' : falha.message)
+      setSituacao('parado')
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={salvar}
+        disabled={situacao === 'salvando'}
+        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-esmeralda px-5 font-bold text-white hover:bg-esmeralda-escuro disabled:opacity-60"
+      >
+        {situacao === 'salvando' ? 'Salvando...' : 'Salvar setup'}
+      </button>
+      {erro && (
+        <p role="alert" className="text-sm font-semibold">
+          {erro}
+        </p>
+      )}
     </div>
   )
 }
