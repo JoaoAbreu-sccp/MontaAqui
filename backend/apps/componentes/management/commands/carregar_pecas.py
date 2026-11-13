@@ -10,6 +10,8 @@ Pode rodar quantas vezes quiser: os IDs são fixos (1–3 low, 4–6 mid,
 ATENÇÃO
 - Preços em R$ são referências aproximadas; atualizar antes da apresentação.
 - pontuacao_desempenho da CPU usa escala própria 0–100 (Ryzen 7 9800X3D = 100).
+- pontuacao_desempenho da GPU usa escala própria 0–100 (RTX 5080 = 100), estimada
+  pela média de desempenho em jogos (rasterização) em reviews; revisar se mudar o catálogo.
 - caminho_produto aponta para a BUSCA da loja pelo nome da peça, não para a
   página exata do produto. O código de afiliado é provisório.
 """
@@ -76,17 +78,17 @@ PECAS = {
     },
     Gpu: {
         "oferta": (LojaGpu, "gpu"),
-        "campos": ('marca', 'modelo', 'preco', 'vram', 'comprimento_mm', 'consumo_watts', 'conectores_necessarios'),
+        "campos": ('marca', 'modelo', 'preco', 'vram', 'comprimento_mm', 'consumo_watts', 'conectores_necessarios', 'pontuacao_desempenho'),
         "linhas": [
-            ('Low', 'MSI', 'GeForce RTX 3050 Ventus 2X 6G OC', '1199.90', 6, 189, 70, 'Nenhum'),
-            ('Low', 'PowerColor', 'Radeon RX 6600 Fighter 8GB', '1399.90', 8, 200, 132, '1x 8 pinos'),
-            ('Low', 'ASRock', 'Intel Arc B580 Challenger 12GB OC', '1899.90', 12, 270, 190, '1x 8 pinos'),
-            ('Mid', 'MSI', 'GeForce RTX 5060 Ventus 2X OC 8GB', '2299.90', 8, 197, 145, '1x 8 pinos'),
-            ('Mid', 'Sapphire', 'Radeon RX 9060 XT Pulse 16GB', '2699.90', 16, 240, 160, '1x 8 pinos'),
-            ('Mid', 'Gigabyte', 'GeForce RTX 5060 Ti Windforce 16GB', '3299.90', 16, 241, 180, '1x 8 pinos'),
-            ('High', 'ASUS', 'GeForce RTX 5070 Prime OC 12GB', '4499.90', 12, 304, 250, '1x 12V-2x6'),
-            ('High', 'Sapphire', 'Radeon RX 9070 XT Pulse 16GB', '4999.90', 16, 320, 304, '2x 8 pinos'),
-            ('High', 'Gigabyte', 'GeForce RTX 5080 Windforce OC 16GB', '8499.90', 16, 340, 360, '1x 12V-2x6'),
+            ('Low', 'MSI', 'GeForce RTX 3050 Ventus 2X 6G OC', '1199.90', 6, 189, 70, 'Nenhum', 18),
+            ('Low', 'PowerColor', 'Radeon RX 6600 Fighter 8GB', '1399.90', 8, 200, 132, '1x 8 pinos', 30),
+            ('Low', 'ASRock', 'Intel Arc B580 Challenger 12GB OC', '1899.90', 12, 270, 190, '1x 8 pinos', 40),
+            ('Mid', 'MSI', 'GeForce RTX 5060 Ventus 2X OC 8GB', '2299.90', 8, 197, 145, '1x 8 pinos', 45),
+            ('Mid', 'Sapphire', 'Radeon RX 9060 XT Pulse 16GB', '2699.90', 16, 240, 160, '1x 8 pinos', 50),
+            ('Mid', 'Gigabyte', 'GeForce RTX 5060 Ti Windforce 16GB', '3299.90', 16, 241, 180, '1x 8 pinos', 52),
+            ('High', 'ASUS', 'GeForce RTX 5070 Prime OC 12GB', '4499.90', 12, 304, 250, '1x 12V-2x6', 68),
+            ('High', 'Sapphire', 'Radeon RX 9070 XT Pulse 16GB', '4999.90', 16, 320, 304, '2x 8 pinos', 82),
+            ('High', 'Gigabyte', 'GeForce RTX 5080 Windforce OC 16GB', '8499.90', 16, 340, 360, '1x 12V-2x6', 100),
         ],
     },
     Fonte: {

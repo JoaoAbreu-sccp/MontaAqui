@@ -1,1 +1,2 @@
+# Servidor de produção: pip install -r requirements/prod.txt
 -r base.txt

@@ -102,3 +102,29 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "usuarios.Usuario"
+
+
+# API (Django REST Framework)
+# Por padrão, toda rota exige login. As rotas públicas (cadastro, login, listas e
+# geração de setups) liberam o acesso com permission_classes = [AllowAny].
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    # Todo erro sai no formato { "detail": "mensagem" }, que o front espera.
+    "EXCEPTION_HANDLER": "config.erros_api.tratar_erro",
+}
+
+# Login com token JWT (djangorestframework-simplejwt)
+# O front guarda só o token de acesso, sem renovação automática. Por isso ele dura
+# 1 dia: depois disso a pessoa entra de novo. Simples para o escopo do projeto.
+from datetime import timedelta  # noqa: E402
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "id_usuario",
+}

@@ -1,12 +1,11 @@
 // Listas de jogos e programas usadas no questionário, vindas da API do Django.
 //
-// Contrato proposto (os endpoints ainda não existem no backend):
+// Rotas do backend (backend/apps/montagens/views.py):
 //   GET /api/jogos/      -> [{ id, nome }]
 //   GET /api/programas/  -> [{ id, nome, categoria }]
 //
 // Os dados saem das tabelas jogo e programa, preenchidas pelo comando
-// carregar_requisitos. Se o backend usar outros caminhos ou campos, basta
-// ajustar este arquivo. O envio e o tratamento de erros ficam em cliente.js.
+// carregar_requisitos. O envio e o tratamento de erros ficam em cliente.js.
 
 import { chamarApi } from './cliente'
 

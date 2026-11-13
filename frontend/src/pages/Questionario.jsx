@@ -12,6 +12,7 @@ import EtapaQualidade from '../components/questionario/EtapaQualidade'
 import Progresso from '../components/questionario/Progresso'
 import TelaCarregando, { DURACAO_MINIMA } from '../components/questionario/TelaCarregando'
 import { ORCAMENTO_INICIAL } from '../dados/opcoesQuestionario'
+import { gerarSetups } from '../services/setups'
 
 // Os nomes dos campos seguem o model Questionario do Django (branch banco-de-dados).
 // Processador e prioridade já começam com a opção recomendada marcada.
@@ -122,7 +123,8 @@ export default function Questionario() {
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
 
-  // Se a pessoa sair da página durante o "Carregando", a mudança para /resultado é cancelada.
+  // Se a pessoa sair da página durante o "Carregando", o tempo mínimo nunca termina
+  // e a mudança para /resultado não acontece.
   const espera = useRef(null)
   useEffect(() => () => clearTimeout(espera.current), [])
 
@@ -164,15 +166,26 @@ export default function Questionario() {
       return
     }
 
-    // Último passo: junta as respostas num objeto e mostra a tela de "Carregando".
-    // Por enquanto ela só espera o tempo das animações e leva as respostas para /resultado.
-    // Quando a API existir, a chamada entra aqui, e a página muda quando a resposta chegar
-    // (usando Promise.all com a espera mínima, para a animação não sumir de repente).
-    const resultado = montarResultado(respostas)
+    // Último passo: envia as respostas para a API e mostra a tela de "Carregando".
+    gerarMontagens(montarResultado(respostas))
+  }
+
+  // Promise.all espera as duas coisas: a resposta da API e o tempo mínimo das animações,
+  // para a tela de "Carregando" não piscar e sumir de repente quando a API for rápida.
+  async function gerarMontagens(resultado) {
     setEnviando(true)
-    espera.current = setTimeout(() => {
-      navigate('/resultado', { state: resultado })
-    }, DURACAO_MINIMA)
+    const tempoMinimo = new Promise((pronto) => {
+      espera.current = setTimeout(pronto, DURACAO_MINIMA)
+    })
+    try {
+      const [gerado] = await Promise.all([gerarSetups(resultado.questionario), tempoMinimo])
+      navigate('/resultado', { state: { ...resultado, gerado } })
+    } catch (falha) {
+      // Volta para a última pergunta com a mensagem de erro no rodapé.
+      clearTimeout(espera.current)
+      setEnviando(false)
+      setErro(falha.message)
+    }
   }
 
   function voltar() {
