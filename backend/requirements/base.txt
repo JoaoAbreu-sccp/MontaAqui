@@ -20,3 +20,7 @@ django-environ==0.14.0
 
 # Driver do MySQL
 mysqlclient==2.3.0
+
+# Assistente de IA (Gemini) e validação da resposta estruturada
+google-genai==3.3.0
+pydantic==2.14.3

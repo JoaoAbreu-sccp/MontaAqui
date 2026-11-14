@@ -128,3 +128,11 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "id_usuario",
 }
+
+
+# Assistente de IA (Gemini). A chave fica só no .env, nunca no código.
+# Sem chave, o assistente não é chamado e os setups saem do motor em Python.
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+GEMINI_MODELO = env("GEMINI_MODELO", default="gemini-2.5-flash")
+# Tempo máximo esperando a IA. Passou disso, usamos o motor em Python.
+GEMINI_TEMPO_LIMITE_SEGUNDOS = env.int("GEMINI_TEMPO_LIMITE_SEGUNDOS", default=40)

@@ -149,7 +149,7 @@ def _gerar_candidatos(alvos, preferencia_cpu):
     candidatos = []
     for base in bases:
         for gpu in gpus:
-            fonte_e_gabinete = _fonte_e_gabinete(base, gpu, fontes, gabinetes)
+            fonte_e_gabinete = escolher_fonte_e_gabinete(base, gpu, fontes, gabinetes)
             if fonte_e_gabinete is None:
                 continue
             for disco in discos:
@@ -160,7 +160,7 @@ def _gerar_candidatos(alvos, preferencia_cpu):
     return candidatos
 
 
-def _fonte_e_gabinete(base, gpu, fontes, gabinetes):
+def escolher_fonte_e_gabinete(base, gpu, fontes, gabinetes):
     """Fonte e gabinete mais baratos que servem para estas peças (ou None)."""
     pecas = {**base, "gpu": gpu}
     potencia_minima = potencia_minima_da_fonte(pecas)

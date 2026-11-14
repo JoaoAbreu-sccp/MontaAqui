@@ -12,6 +12,7 @@ from .motor import preco_total
 
 # Valores aceitos, iguais aos do front (frontend/src/dados/opcoesQuestionario.js).
 FINALIDADES = ["Jogos", "Trabalho", "Estudos", "Edição"]
+SINONIMOS_FINALIDADE = {"Edição/Criação": "Edição", "Edição e criação": "Edição"}
 PREFERENCIAS_CPU = ["Sem preferência", "AMD", "Intel"]
 PRIORIDADES = ["Custo-benefício", "Desempenho", "Economia"]
 RESOLUCOES = ["1080p", "1440p", "4K"]
@@ -57,6 +58,13 @@ class QuestionarioSerializer(serializers.Serializer):
     jogos = serializers.PrimaryKeyRelatedField(queryset=Jogo.objects.all(), many=True, required=False)
     programas = serializers.PrimaryKeyRelatedField(queryset=Programa.objects.all(), many=True,
                                                    required=False)
+
+    def to_internal_value(self, dados):
+        # O documento do projeto chama a finalidade de "Edição/Criação"; o banco e o
+        # front usam "Edição". Aceitamos os dois nomes e gravamos sempre "Edição".
+        if hasattr(dados, "get") and dados.get("finalidade") in SINONIMOS_FINALIDADE:
+            dados = {**dados, "finalidade": SINONIMOS_FINALIDADE[dados["finalidade"]]}
+        return super().to_internal_value(dados)
 
     def validate(self, dados):
         if dados["finalidade"] == "Jogos":
@@ -158,5 +166,7 @@ def setup_salvo_para_json(setup):
         "data_criacao": setup.data_criacao.isoformat(),
         "finalidade": setup.questionario.finalidade,
         "orcamento": float(setup.questionario.orcamento),
+        # Conferido de novo por SalvarSetupSerializer antes de ser gravado.
+        "compatibilidade_verificada": True,
         "pecas": pecas_para_json(pecas),
     }
