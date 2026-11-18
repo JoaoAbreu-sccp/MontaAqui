@@ -1,4 +1,4 @@
-git push// Ilustração principal da Home: uma placa-mãe feita com HTML e Tailwind.
+// Ilustração principal da Home: uma placa-mãe feita com HTML e Tailwind.
 // Usamos texto de verdade, e não uma imagem, para ele continuar legível no celular.
 // As classes col-span definem o tamanho de cada peça em uma grade de 6 colunas.
 const pecas = [
