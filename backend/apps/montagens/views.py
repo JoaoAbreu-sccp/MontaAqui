@@ -6,10 +6,12 @@ Rotas de montagem do MontaAqui.
     POST /api/setups/gerar/   respostas do questionário -> até 3 setups (público)
     GET  /api/setups/         setups salvos da pessoa logada          (exige login)
     POST /api/setups/         salva um setup gerado                   (exige login)
+    DELETE /api/setups/<id>/  remove um setup salvo da pessoa logada  (exige login)
 
 Visitantes geram setups sem conta; só quem está logado salva (RF08).
 """
 
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -110,3 +112,16 @@ class SetupsDoUsuarioView(APIView):
         serializer.is_valid(raise_exception=True)
         setup = serializer.save()
         return Response(setup_salvo_para_json(setup), status=status.HTTP_201_CREATED)
+
+
+class RemoverSetupView(APIView):
+    """Apaga um setup salvo. Cada pessoa só enxerga e apaga os próprios setups."""
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        # Filtrar pelo usuário faz o setup de outra pessoa responder 404, como se não
+        # existisse: assim ninguém apaga, nem descobre, setups que não são seus.
+        setup = get_object_or_404(Setup, pk=pk, usuario=request.user)
+        setup.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -9,7 +9,7 @@ from rest_framework.test import APITestCase
 from apps.componentes.models import Armazenamento, Cpu, Fonte, Gabinete, Gpu, PlacaMae, Ram
 
 from .compatibilidade import verificar_compatibilidade
-from .models import Jogo, Programa
+from .models import Jogo, Programa, Setup
 from .motor import LIMITE_ACIMA, gerar_setups
 
 
@@ -181,6 +181,36 @@ class ApiSetupsTests(APITestCase):
 
         lista = self.client.get("/api/setups/")
         self.assertEqual([s["id"] for s in lista.data], [salvo.data["id"]])
+
+    def salvar_primeiro_setup(self):
+        resposta = self.gerar()
+        setup = resposta.data["setups"][0]
+        salvar = {"questionario": resposta.data["questionario"], "categoria": setup["categoria"], **setup["ids"]}
+        return self.client.post("/api/setups/", salvar, format="json").data["id"]
+
+    def test_usuario_remove_o_proprio_setup(self):
+        self.entrar("maria@exemplo.com")
+        id_setup = self.salvar_primeiro_setup()
+
+        removido = self.client.delete(f"/api/setups/{id_setup}/")
+        self.assertEqual(removido.status_code, 204)
+        self.assertEqual(self.client.get("/api/setups/").data, [])
+
+    def test_nao_remove_setup_de_outra_pessoa(self):
+        self.entrar("dono@exemplo.com")
+        id_setup = self.salvar_primeiro_setup()
+
+        self.entrar("outra@exemplo.com")
+        self.assertEqual(self.client.delete(f"/api/setups/{id_setup}/").status_code, 404)
+        self.assertTrue(Setup.objects.filter(id=id_setup).exists())
+
+    def test_visitante_nao_remove_setup(self):
+        self.entrar("dona@exemplo.com")
+        id_setup = self.salvar_primeiro_setup()
+
+        self.client.credentials()  # tira o token: agora é um visitante
+        self.assertEqual(self.client.delete(f"/api/setups/{id_setup}/").status_code, 401)
+        self.assertTrue(Setup.objects.filter(id=id_setup).exists())
 
     def test_salvar_setup_incompativel_e_recusado(self):
         self.entrar("ana@exemplo.com")
