@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import useAuth from '../hooks/useAuth'
-import { listarSetups } from '../services/setups'
+import { listarSetups, removerSetup } from '../services/setups'
 import CartaoSetup from './CartaoSetup'
 import { IconeSeta } from './Icones'
 import EstadoDaLista from './questionario/EstadoDaLista'
@@ -38,6 +38,11 @@ export default function MeusSetups() {
     }
   }, [token, tentativa, sair])
 
+  // Depois que a API confirma, o setup some da tela sem precisar buscar a lista de novo.
+  function tirarDaLista(idDoSetup) {
+    setSetups((atual) => atual.filter((setup) => setup.id !== idDoSetup))
+  }
+
   function tentarDeNovo() {
     setErro('')
     setCarregando(true)
@@ -70,9 +75,12 @@ export default function MeusSetups() {
                 key={setup.id}
                 setup={setup}
                 acao={
-                  <p className="text-sm text-tinta-suave">
-                    {setup.finalidade} · salvo em {formatadorDeData.format(new Date(setup.data_criacao))}
-                  </p>
+                  <div className="flex flex-col gap-3">
+                    <p className="text-sm text-tinta-suave">
+                      {setup.finalidade} · salvo em {formatadorDeData.format(new Date(setup.data_criacao))}
+                    </p>
+                    <BotaoRemover setup={setup} aoRemover={tirarDaLista} />
+                  </div>
                 }
               />
             ))}
@@ -80,5 +88,48 @@ export default function MeusSetups() {
         )}
       </EstadoDaLista>
     </section>
+  )
+}
+
+// Remove um setup salvo, pedindo confirmação antes, porque não tem como desfazer.
+function BotaoRemover({ setup, aoRemover }) {
+  const { token, sair } = useAuth()
+  const [removendo, setRemovendo] = useState(false)
+  const [erro, setErro] = useState('')
+
+  async function remover() {
+    if (!window.confirm(`Remover o setup "${setup.categoria}"? Essa ação não pode ser desfeita.`)) return
+
+    setErro('')
+    setRemovendo(true)
+    try {
+      await removerSetup(setup.id, token)
+      aoRemover(setup.id)
+    } catch (falha) {
+      setRemovendo(false)
+      // 401: o login venceu. Saindo da conta, aparece o convite para entrar de novo.
+      if (falha.status === 401) sair()
+      // 404: o setup já não existe (ex.: removido em outra aba). Basta tirá-lo da tela.
+      else if (falha.status === 404) aoRemover(setup.id)
+      else setErro(falha.message)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <button
+        type="button"
+        onClick={remover}
+        disabled={removendo}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-linha px-5 font-bold text-tinta-suave hover:border-tinta-suave disabled:opacity-60"
+      >
+        {removendo ? 'Removendo...' : 'Remover setup'}
+      </button>
+      {erro && (
+        <p role="alert" className="text-sm font-semibold">
+          {erro}
+        </p>
+      )}
+    </div>
   )
 }

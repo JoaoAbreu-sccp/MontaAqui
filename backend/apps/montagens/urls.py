@@ -7,4 +7,5 @@ urlpatterns = [
     path("programas/", views.ListaProgramasView.as_view(), name="programas"),
     path("setups/gerar/", views.GerarSetupsView.as_view(), name="gerar-setups"),
     path("setups/", views.SetupsDoUsuarioView.as_view(), name="setups"),
+    path("setups/<int:pk>/", views.RemoverSetupView.as_view(), name="remover-setup"),
 ]

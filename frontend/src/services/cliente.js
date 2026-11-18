@@ -9,7 +9,7 @@ export const MENSAGEM_SEM_CONEXAO =
   'Não foi possível conectar ao servidor. Tente novamente em instantes.'
 const MENSAGEM_ERRO_GERAL = 'Algo deu errado. Confira os dados e tente novamente.'
 
-// metodo: 'GET' (padrão) ou 'POST'. dados: objeto enviado como JSON no POST.
+// metodo: 'GET' (padrão), 'POST' ou 'DELETE'. dados: objeto enviado como JSON no POST.
 // token: o JWT da pessoa logada (vem do useAuth). Só as rotas que exigem login precisam dele.
 export async function chamarApi(caminho, { metodo = 'GET', dados, token } = {}) {
   const cabecalhos = {}
