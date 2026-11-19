@@ -10,7 +10,7 @@ import EtapaProcessador from '../components/questionario/EtapaProcessador'
 import EtapaProgramas from '../components/questionario/EtapaProgramas'
 import EtapaQualidade from '../components/questionario/EtapaQualidade'
 import Progresso from '../components/questionario/Progresso'
-import TelaCarregando, { DURACAO_MINIMA } from '../components/questionario/TelaCarregando'
+import TelaCarregando, { DURACAO_FINAL, DURACAO_MINIMA } from '../components/questionario/TelaCarregando'
 import { ORCAMENTO_INICIAL } from '../dados/opcoesQuestionario'
 import { gerarSetups } from '../services/setups'
 
@@ -122,6 +122,7 @@ export default function Questionario() {
   const [indice, setIndice] = useState(0)
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [terminou, setTerminou] = useState(false) // a resposta da API já chegou
 
   // Se a pessoa sair da página durante o "Carregando", o tempo mínimo nunca termina
   // e a mudança para /resultado não acontece.
@@ -179,6 +180,12 @@ export default function Questionario() {
     })
     try {
       const [gerado] = await Promise.all([gerarSetups(resultado.questionario), tempoMinimo])
+      // Resposta chegou: as peças que faltavam encaixam e a barra completa. Só depois
+      // dessa animação curta a página muda.
+      setTerminou(true)
+      await new Promise((pronto) => {
+        espera.current = setTimeout(pronto, DURACAO_FINAL)
+      })
       navigate('/resultado', { state: { ...resultado, gerado } })
     } catch (falha) {
       // Volta para a última pergunta com a mensagem de erro no rodapé.
@@ -197,7 +204,7 @@ export default function Questionario() {
     setIndice(indice - 1)
   }
 
-  if (enviando) return <TelaCarregando />
+  if (enviando) return <TelaCarregando terminou={terminou} />
 
   return (
     <div className="flex min-h-svh flex-col">
