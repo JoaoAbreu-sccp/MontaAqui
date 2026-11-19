@@ -9,3 +9,7 @@ DATABASES = {
 }
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
+
+# Em desenvolvimento os e-mails não são enviados: aparecem no terminal do Django.
+# Assim dá para testar a recuperação de senha sem configurar Gmail nem servidor de e-mail.
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

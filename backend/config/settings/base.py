@@ -136,3 +136,11 @@ GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
 GEMINI_MODELO = env("GEMINI_MODELO", default="gemini-2.5-flash")
 # Tempo máximo esperando a IA. Passou disso, usamos o motor em Python.
 GEMINI_TEMPO_LIMITE_SEGUNDOS = env.int("GEMINI_TEMPO_LIMITE_SEGUNDOS", default=40)
+
+
+# Recuperação de senha (RF03), ver apps/usuarios/recuperacao.py
+# Endereço do front: o link do e-mail aponta para a página /redefinir-senha dele.
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173").rstrip("/")
+# O link de nova senha vale por 2 horas (o padrão do Django é 3 dias).
+PASSWORD_RESET_TIMEOUT = 2 * 60 * 60
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="MontaAqui <nao-responda@montaaqui.local>")
