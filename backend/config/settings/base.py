@@ -133,9 +133,15 @@ SIMPLE_JWT = {
 # Assistente de IA (Gemini). A chave fica só no .env, nunca no código.
 # Sem chave, o assistente não é chamado e os setups saem do motor em Python.
 GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
-GEMINI_MODELO = env("GEMINI_MODELO", default="gemini-2.5-flash")
-# Tempo máximo esperando a IA. Passou disso, usamos o motor em Python.
-GEMINI_TEMPO_LIMITE_SEGUNDOS = env.int("GEMINI_TEMPO_LIMITE_SEGUNDOS", default=40)
+# O gemini-2.5-flash do pedido original não está mais disponível para contas novas.
+# Testamos em 19/11/2026: o 3.5-flash respondeu ao pedido completo em ~9 s, enquanto
+# o 3.7 e o 3.8 viviam sobrecarregados. Para trocar, basta GEMINI_MODELO no .env.
+GEMINI_MODELO = env("GEMINI_MODELO", default="gemini-3.5-flash")
+# Nos testes a IA de verdade nunca é chamada (ver config/test_runner.py).
+TEST_RUNNER = "config.test_runner.ExecutorSemIA"
+# Tempo máximo esperando cada tentativa da IA. Passou disso, usamos o motor em Python.
+# Com a nova tentativa (ver servico.py), a espera total fica em pouco mais de 1 minuto no pior caso.
+GEMINI_TEMPO_LIMITE_SEGUNDOS = env.int("GEMINI_TEMPO_LIMITE_SEGUNDOS", default=30)
 
 
 # Recuperação de senha (RF03), ver apps/usuarios/recuperacao.py

@@ -25,7 +25,7 @@ import logging
 from django.conf import settings
 
 from apps.montagens.models import Setup
-from apps.montagens.motor import preco_total, resumir
+from apps.montagens.motor import LIMITE_ACIMA, preco_total, resumir
 
 from .auditoria import Catalogo, ajustar_setup, atende_regras_do_nivel
 from .esquemas import RespostaAssistente
@@ -53,6 +53,10 @@ Cada setup precisa ter exatamente: 1 CPU, 1 placa-mãe, 1 RAM, 1 GPU, 1 armazena
 - placa-mãe cabe no gabinete pela hierarquia Mini-ITX < Micro-ATX < ATX
   (gabinete ATX aceita as três; Micro-ATX aceita Micro-ATX e Mini-ITX);
 - "comprimento_mm" da GPU menor ou igual a "comprimento_max_gpu" do gabinete.
+
+PREÇO: o preço de um setup é a SOMA do "preco" das 7 peças. Ele precisa ficar dentro de
+"limites_de_preco_por_nivel". Antes de responder, some os 7 preços de cada setup; se passar
+do máximo, troque peças por outras mais baratas até caber. Setup fora da faixa é descartado.
 
 Use os "alvos" como referência: nada abaixo dos mínimos (cpu_min, vram_min, ram_min);
 o recomendado (cpu_rec, gpu_rec, vram_rec, ram_rec) é o ideal. A pontuação de CPU e de
@@ -109,9 +113,23 @@ def montar_pedido(questionario, referencias, alvos, catalogo):
             ],
         },
         "alvos": {chave: round(valor) for chave, valor in alvos.items()},
+        # Limites já calculados em reais: nos testes, a IA errava a conta de "20% acima".
+        "limites_de_preco_por_nivel": _limites_de_preco(questionario.orcamento),
         "catalogo": catalogo_para_ia(catalogo),
     }
     return json.dumps(dados, ensure_ascii=False)
+
+
+def _limites_de_preco(orcamento):
+    """Faixa de preço total (soma das 7 peças) aceita em cada nível, em reais."""
+    orcamento = float(orcamento)
+    return {
+        "Abaixo do Orçamento": {"maximo": round(orcamento, 2),
+                                "observacao": "precisa custar menos que o Equilíbrio"},
+        "Equilíbrio": {"maximo": round(orcamento, 2)},
+        "Acima do Orçamento": {"minimo": round(orcamento, 2),
+                               "maximo": round(orcamento * float(LIMITE_ACIMA), 2)},
+    }
 
 
 def chamar_gemini(pedido):
@@ -122,7 +140,14 @@ def chamar_gemini(pedido):
 
     cliente = genai.Client(
         api_key=settings.GEMINI_API_KEY,
-        http_options=types.HttpOptions(timeout=settings.GEMINI_TEMPO_LIMITE_SEGUNDOS * 1000),
+        http_options=types.HttpOptions(
+            timeout=settings.GEMINI_TEMPO_LIMITE_SEGUNDOS * 1000,
+            # O Google às vezes responde "alta demanda" (503) ou "muitos pedidos" (429).
+            # Esses erros passam rápido: tentamos mais uma vez, 2 segundos depois.
+            retry_options=types.HttpRetryOptions(
+                attempts=2, initial_delay=2.0, max_delay=4.0, http_status_codes=[429, 500, 503],
+            ),
+        ),
     )
     resposta = cliente.models.generate_content(
         model=settings.GEMINI_MODELO,
