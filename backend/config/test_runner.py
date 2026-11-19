@@ -13,7 +13,8 @@ from django.test.utils import override_settings
 class ExecutorSemIA(DiscoverRunner):
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
-        self._sem_ia = override_settings(GEMINI_API_KEY="")
+        # Sem cache também: cada teste precisa ver a sua própria resposta simulada.
+        self._sem_ia = override_settings(GEMINI_API_KEY="", GEMINI_CACHE_SEGUNDOS=0)
         self._sem_ia.enable()
 
     def teardown_test_environment(self, **kwargs):

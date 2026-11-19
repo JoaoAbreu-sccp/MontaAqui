@@ -131,3 +131,45 @@ class EndpointComIaTests(APITestCase):
         resposta = self.client.post("/api/setups/gerar/", dados, format="json")
         self.assertEqual(resposta.status_code, 200)
         self.assertEqual(Questionario.objects.get(id=resposta.data["questionario"]).finalidade, "Edição")
+
+
+@override_settings(GEMINI_API_KEY="chave-de-teste", GEMINI_CACHE_SEGUNDOS=60)
+class CacheEPedidoTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("carregar_pecas", verbosity=0)
+        call_command("carregar_requisitos", verbosity=0)
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
+
+    def test_mesmo_pedido_consulta_a_ia_uma_vez_so(self):
+        from .servico import consultar_ia
+
+        with patch("apps.assistente.servico.chamar_gemini",
+                   return_value=RespostaAssistente(setups=[escolha()])) as falso:
+            primeira = consultar_ia("pedido de teste")
+            segunda = consultar_ia("pedido de teste")
+            consultar_ia("outro pedido")
+        self.assertEqual(falso.call_count, 2)
+        self.assertEqual(primeira, segunda)
+
+    def test_catalogo_so_leva_pecas_possiveis(self):
+        import json
+
+        from apps.montagens.motor import calcular_alvos
+
+        from .auditoria import Catalogo
+        from .servico import montar_pedido
+
+        jogo = Jogo.objects.get(nome="Cyberpunk 2077")
+        questionario = Questionario(finalidade="Jogos", orcamento=Decimal("8000"), preferencia_cpu="AMD",
+                                    prioridade_desempenho="Custo-benefício", resolucao_alvo="1440p", fps_alvo=60)
+        alvos = calcular_alvos("Jogos", [jogo], [], "1440p", 60)
+        catalogo = json.loads(montar_pedido(questionario, [jogo], alvos, Catalogo()))["catalogo"]
+        self.assertTrue(catalogo["cpu"])
+        self.assertTrue(all(c["marca"] == "AMD" for c in catalogo["cpu"]))
+        self.assertTrue(all(g["vram"] >= alvos["vram_min"] for g in catalogo["gpu"]))
+        self.assertTrue(all(r["capacidade_gb"] >= alvos["ram_min"] for r in catalogo["ram"]))

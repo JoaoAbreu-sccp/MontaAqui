@@ -19,10 +19,12 @@ Cada setup devolvido diz de onde veio, no campo "origem":
     "motor"       escolhido pelo motor em Python
 """
 
+import hashlib
 import json
 import logging
 
 from django.conf import settings
+from django.core.cache import cache
 
 from apps.montagens.models import Setup
 from apps.montagens.motor import LIMITE_ACIMA, preco_total, resumir
@@ -82,7 +84,24 @@ CAMPOS_PARA_IA = {
 }
 
 
-def catalogo_para_ia(catalogo):
+def _serve_para_o_pedido(tipo, peca, alvos, preferencia_cpu):
+    """
+    Tira do catálogo enviado à IA as peças que ela nunca poderia escolher.
+    Menos texto para ler deixa a resposta mais rápida e com menos chance de erro.
+    """
+    if alvos is None:
+        return True
+    if tipo == "cpu":
+        marca_ok = preferencia_cpu not in ("AMD", "Intel") or peca.marca == preferencia_cpu
+        return marca_ok and peca.pontuacao_desempenho >= alvos["cpu_min"]
+    if tipo == "gpu":
+        return peca.vram >= alvos["vram_min"]
+    if tipo == "ram":
+        return peca.capacidade_gb >= alvos["ram_min"]
+    return True
+
+
+def catalogo_para_ia(catalogo, alvos=None, preferencia_cpu=None):
     """As peças do banco em JSON simples: ID, campos técnicos e preço."""
     saida = {}
     for tipo, campos in CAMPOS_PARA_IA.items():
@@ -90,6 +109,7 @@ def catalogo_para_ia(catalogo):
             {"id": peca.id, **{c: (float(getattr(peca, c)) if c == "preco" else getattr(peca, c))
                                for c in campos}}
             for peca in catalogo.todas(tipo)
+            if _serve_para_o_pedido(tipo, peca, alvos, preferencia_cpu)
         ]
     return saida
 
@@ -115,7 +135,7 @@ def montar_pedido(questionario, referencias, alvos, catalogo):
         "alvos": {chave: round(valor) for chave, valor in alvos.items()},
         # Limites já calculados em reais: nos testes, a IA errava a conta de "20% acima".
         "limites_de_preco_por_nivel": _limites_de_preco(questionario.orcamento),
-        "catalogo": catalogo_para_ia(catalogo),
+        "catalogo": catalogo_para_ia(catalogo, alvos, questionario.preferencia_cpu),
     }
     return json.dumps(dados, ensure_ascii=False)
 
@@ -157,13 +177,34 @@ def chamar_gemini(pedido):
             response_mime_type="application/json",
             response_schema=RespostaAssistente,
             temperature=0.2,  # respostas mais estáveis: o mesmo pedido dá setups parecidos
-            # Limita o "raciocínio" do modelo para responder em poucos segundos.
-            thinking_config=types.ThinkingConfig(thinking_budget=2048),
+            # Limita o "raciocínio" do modelo: mais raciocínio erra menos, mas demora mais.
+            thinking_config=types.ThinkingConfig(thinking_budget=settings.GEMINI_RACIOCINIO),
         ),
     )
     if isinstance(resposta.parsed, RespostaAssistente):
         return resposta.parsed
     return RespostaAssistente.model_validate_json(resposta.text)
+
+
+def consultar_ia(pedido):
+    """
+    chamar_gemini() com cache: o mesmo pedido, dentro de 1 hora, sai da memória na hora.
+
+    A chave do cache é um resumo (hash) do pedido inteiro, que inclui o questionário e o
+    catálogo com preços. Se qualquer coisa mudar, o pedido muda e a IA é consultada de novo.
+    Ajuda na apresentação (repetir um exemplo é instantâneo) e economiza a cota gratuita.
+    """
+    if not settings.GEMINI_CACHE_SEGUNDOS:
+        return chamar_gemini(pedido)
+
+    chave = "ia:" + hashlib.sha256(f"{settings.GEMINI_MODELO}|{pedido}".encode()).hexdigest()
+    guardada = cache.get(chave)
+    if guardada is not None:
+        return RespostaAssistente.model_validate_json(guardada)
+
+    resposta = chamar_gemini(pedido)
+    cache.set(chave, resposta.model_dump_json(), settings.GEMINI_CACHE_SEGUNDOS)
+    return resposta
 
 
 def _setup_do_motor(setup_motor, orcamento, referencias):
@@ -194,7 +235,7 @@ def recomendar_setups(questionario, referencias, resultado_motor):
     catalogo = Catalogo()
     alvos = resultado_motor["alvos"]
     try:
-        resposta = chamar_gemini(montar_pedido(questionario, referencias, alvos, catalogo))
+        resposta = consultar_ia(montar_pedido(questionario, referencias, alvos, catalogo))
     except Exception:  # sem internet, demora, chave inválida, JSON fora do formato...
         logger.exception("Falha ao consultar a IA; usando o motor em Python.")
         return setups_do_motor

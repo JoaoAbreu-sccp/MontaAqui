@@ -137,6 +137,11 @@ GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
 # Testamos em 19/11/2026: o 3.5-flash respondeu ao pedido completo em ~9 s, enquanto
 # o 3.7 e o 3.8 viviam sobrecarregados. Para trocar, basta GEMINI_MODELO no .env.
 GEMINI_MODELO = env("GEMINI_MODELO", default="gemini-3.5-flash")
+# "Orçamento de raciocínio" do modelo, em tokens. Mais raciocínio erra menos as contas
+# de preço, mas demora mais para responder. Ver apps/assistente/servico.py.
+GEMINI_RACIOCINIO = env.int("GEMINI_RACIOCINIO", default=2048)
+# Por quanto tempo uma resposta da IA fica guardada para o mesmo pedido (0 = sem cache).
+GEMINI_CACHE_SEGUNDOS = env.int("GEMINI_CACHE_SEGUNDOS", default=60 * 60)
 # Nos testes a IA de verdade nunca é chamada (ver config/test_runner.py).
 TEST_RUNNER = "config.test_runner.ExecutorSemIA"
 # Tempo máximo esperando cada tentativa da IA. Passou disso, usamos o motor em Python.
