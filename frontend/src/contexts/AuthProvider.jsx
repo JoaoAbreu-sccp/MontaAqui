@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cadastrarUsuario, entrarNaConta } from '../services/api'
+import { cadastrarUsuario, definirNovaSenha, entrarNaConta } from '../services/api'
 import { AuthContext } from './AuthContext'
 
 // Chaves usadas no localStorage. O prefixo evita conflito com outros sites em localhost.
@@ -56,6 +56,11 @@ export default function AuthProvider({ children }) {
     iniciarSessao(await cadastrarUsuario(nome, email, password))
   }
 
+  // Depois de criar a senha nova pelo link do e-mail, a pessoa também já fica logada.
+  async function redefinirSenha(uid, token, password) {
+    iniciarSessao(await definirNovaSenha(uid, token, password))
+  }
+
   function sair() {
     apagarSessao()
     setSessao({ token: null, usuario: null })
@@ -67,6 +72,7 @@ export default function AuthProvider({ children }) {
     estaLogado: Boolean(sessao.token),
     entrar,
     cadastrar,
+    redefinirSenha,
     sair,
   }
 

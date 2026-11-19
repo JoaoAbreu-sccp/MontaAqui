@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Perfil from './pages/Perfil'
 import Questionario from './pages/Questionario'
 import RecuperarSenha from './pages/RecuperarSenha'
+import RedefinirSenha from './pages/RedefinirSenha'
 import Resultado from './pages/Resultado'
 
 const router = createBrowserRouter([
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'cadastro', element: <Cadastro /> },
       { path: 'recuperar-senha', element: <RecuperarSenha /> },
+      { path: 'redefinir-senha', element: <RedefinirSenha /> },
       { path: 'resultado', element: <Resultado /> },
       // Os setups salvos agora ficam no Perfil; o endereço antigo leva para lá.
       { path: 'setups', element: <Navigate to="/perfil" replace /> },
